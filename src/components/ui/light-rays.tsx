@@ -99,6 +99,8 @@ export function LightRays({
   const cycleDuration = Math.max(speed, 0.1)
 
   useEffect(() => {
+    // createRays usa Math.random(): precisa rodar só no cliente (evita divergir do SSR)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRays(createRays(count, cycleDuration))
   }, [count, cycleDuration])
 
