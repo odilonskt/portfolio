@@ -1,6 +1,5 @@
 "use client";
 
-import { Pause, Play } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useSyncExternalStore } from "react";
 
@@ -59,7 +58,9 @@ export function GithubGlobe({ className }: { className?: string }) {
           title={paused ? t.resume : t.pause}
           className="absolute -right-2 -bottom-2 z-10 size-7 text-muted-foreground"
         >
-          {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+          <span aria-hidden="true" className="text-base leading-none">
+            {paused ? "▶️" : "⏸️"}
+          </span>
         </Button>
       )}
     </>
