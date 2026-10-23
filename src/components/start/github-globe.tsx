@@ -1,5 +1,6 @@
 "use client";
 
+import { Pause, Play } from "lucide-react";
 import { motion } from "motion/react";
 import { useState, useSyncExternalStore } from "react";
 
@@ -56,11 +57,9 @@ export function GithubGlobe({ className }: { className?: string }) {
           aria-pressed={paused}
           aria-label={paused ? t.resume : t.pause}
           title={paused ? t.resume : t.pause}
-          className="absolute -right-2 -bottom-2 z-10 size-7 text-muted-foreground"
+          className="absolute -right-2 -bottom-2 z-10 size-7 text-muted-foreground transition-transform hover:scale-110 active:scale-90"
         >
-          <span aria-hidden="true" className="text-base leading-none">
-            {paused ? "▶️" : "⏸️"}
-          </span>
+          {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
         </Button>
       )}
     </>
