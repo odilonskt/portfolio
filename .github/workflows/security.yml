@@ -45,8 +45,11 @@ jobs:
     timeout-minutes: 10
     # Imagem oficial do Semgrep, fixada por digest (não "latest") — revisite de vez
     # em quando em https://hub.docker.com/r/semgrep/semgrep/tags
+    # --user root: a imagem roda como usuário não-root por padrão, o que dá EACCES
+    # no actions/checkout ao gravar nos diretórios temporários do runner.
     container:
       image: semgrep/semgrep@sha256:12d30d0e885ad134d0671b416b1de5e558b69729f0e7a60fd6cc8132b98811da
+      options: --user root
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
