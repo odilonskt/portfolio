@@ -5,6 +5,10 @@ name: Deploy
 # (Team ID e Project ID copiados do painel da Vercel — o .vercel/project.json local
 # aponta para um projeto antigo).
 #
+# Merge na main deve ser feito por uma pessoa (botão "Merge" no PR), não por um
+# workflow com GITHUB_TOKEN: eventos gerados pelo GITHUB_TOKEN não disparam outros
+# workflows, então um merge automático feito assim nunca chegaria a este deploy.
+#
 # O build roda NA Vercel (vercel deploy sem --prebuilt), não aqui: as variáveis de
 # ambiente marcadas como "Sensitive" na Vercel nunca são entregues ao CLI
 # (vercel pull grava "[SENSITIVE]" no lugar), então um build no Actions geraria as
@@ -66,7 +70,11 @@ jobs:
 
   production:
     name: Deploy (produção)
-    if: github.event_name == 'push'
+    # workflow_dispatch: permite publicar de novo à mão (Actions → Deploy → Run workflow),
+    # mas só a partir da main — o "Run workflow" deixa escolher qualquer branch
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
