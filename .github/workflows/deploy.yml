@@ -1,10 +1,14 @@
 name: Deploy
 
-# Substitui a integração nativa da Vercel (GitHub App). Antes de ativar este workflow
-# de verdade: desconectar o repositório em Vercel → Project Settings → Git, criar os
-# secrets VERCEL_TOKEN/VERCEL_ORG_ID/VERCEL_PROJECT_ID no GitHub (os dois últimos já
-# estão no .vercel/project.json local, não versionado), e trocar o check obrigatório
-# "Vercel" pelo novo job na branch protection da main.
+# Substitui a integração nativa da Vercel (GitHub App). Precisa dos secrets
+# VERCEL_TOKEN (escopo do time dono do projeto) e VERCEL_ORG_ID/VERCEL_PROJECT_ID
+# (Team ID e Project ID copiados do painel da Vercel — o .vercel/project.json local
+# aponta para um projeto antigo).
+#
+# O build roda NA Vercel (vercel deploy sem --prebuilt), não aqui: as variáveis de
+# ambiente marcadas como "Sensitive" na Vercel nunca são entregues ao CLI
+# (vercel pull grava "[SENSITIVE]" no lugar), então um build no Actions geraria as
+# páginas estáticas com valores falsos.
 
 on:
   pull_request:
@@ -20,19 +24,19 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
 jobs:
   preview:
     name: Deploy (preview)
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: read
       pull-requests: write # só para comentar a URL do preview no PR
+    # Escopo do job (não do workflow): só os passos deste job enxergam os IDs
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -41,38 +45,33 @@ jobs:
       - name: Instalar Vercel CLI
         run: npm install --global vercel@65.2.0
 
-      - name: Baixar config/env do ambiente de preview
-        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build
-        run: vercel build --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
       - name: Deploy
         id: deploy
-        run: echo "url=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")" >> "$GITHUB_OUTPUT"
+        run: echo "url=$(vercel deploy --yes --token="$VERCEL_TOKEN")" >> "$GITHUB_OUTPUT"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Comentar a URL do preview no PR
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.url }}
         with:
           script: |
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🔗 Preview: ${{ steps.deploy.outputs.url }}`,
+              body: `🔗 Preview: ${process.env.PREVIEW_URL}`,
             })
 
   production:
     name: Deploy (produção)
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -81,17 +80,7 @@ jobs:
       - name: Instalar Vercel CLI
         run: npm install --global vercel@65.2.0
 
-      - name: Baixar config/env de produção
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build
-        run: vercel build --prod --token="$VERCEL_TOKEN"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
       - name: Deploy
-        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        run: vercel deploy --prod --yes --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

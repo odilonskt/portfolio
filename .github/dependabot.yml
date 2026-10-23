@@ -1,10 +1,14 @@
 version: 2
 updates:
-  # Dependências do projeto (pnpm-lock.yaml) — grátis em qualquer plano, inclusive privado
+  # Dependências do projeto (pnpm-lock.yaml)
   - package-ecosystem: npm
     directory: "/"
     schedule:
       interval: weekly
+    # Espera 7 dias antes de propor uma versão recém-publicada: pacotes comprometidos
+    # costumam ser detectados e retirados do registry nesse intervalo
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 10
     groups:
       # Menos ruído: patch/minor de tudo numa PR só; major continua separado para revisar com calma
@@ -18,3 +22,5 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
