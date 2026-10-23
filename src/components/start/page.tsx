@@ -1,9 +1,9 @@
 import { Github, Linkedin } from "@deemlol/next-icons";
 import { FileText, Send } from "lucide-react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { GithubGlobe } from "@/components/start/github-globe";
-import { Portrait } from "@/components/start/portrait";
 import { PROFILE, PROFILE_TEXT, SOCIAL_LINKS } from "@/lib/content/profile";
 import { localePath } from "@/lib/i18n/config";
 import { common } from "@/lib/i18n/messages/common";
@@ -23,6 +23,26 @@ async function loadGitHubUser(): Promise<GitHubUser | null> {
   } catch {
     return null;
   }
+}
+
+function Portrait({ alt }: { alt: string }) {
+  return (
+    // Galeria do daisyUI: passar o mouse alterna entre as fotos
+    <figure className="hover-gallery size-44 shrink-0 overflow-hidden rounded-3xl border border-border sm:size-56 md:size-64">
+      {PROFILE.photos.map((src, index) => (
+        <Image
+          key={src}
+          src={src}
+          alt={index === 0 ? alt : ""}
+          width={512}
+          height={512}
+          priority={index === 0}
+          sizes="(min-width: 768px) 256px, 224px"
+          className="size-full object-cover"
+        />
+      ))}
+    </figure>
+  );
 }
 
 function Stats({ user, t }: { user: GitHubUser; t: (typeof home)["pt"]["hero"] }) {
