@@ -49,7 +49,7 @@ type Messages = (typeof dashboard)["pt"];
 
 // ─── Limite de tentativas ─────────────────────────────────────────────────────
 // Mesmo com login de admin: protege contra script em loop ou sessão roubada
-// (cada "salvar" pode enviar uma imagem de até 2 MB para o Storage).
+// (cada "salvar" pode enviar imagens de até 4 MB, somadas, para o Storage).
 const LIMITS = {
   save: { limit: 20, windowMs: 60_000 },
   delete: { limit: 30, windowMs: 60_000 },

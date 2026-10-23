@@ -7,7 +7,10 @@ import { randomUUID } from "node:crypto";
 
 import { adminBucket } from "@/lib/firebase/admin";
 
-export const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // 2 MB
+// Mesmo teto do limite combinado por salvamento (MAX_UPLOAD_BYTES_PER_SAVE em
+// actions.ts): mais que isso não caberia de qualquer forma no limite de
+// requisição da Vercel (4,5 MB).
+export const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4 MB
 
 // SVG fica de fora de propósito: pode carregar scripts (XSS).
 const SIGNATURES: { mime: string; ext: string; test: (b: Uint8Array) => boolean }[] = [
@@ -41,7 +44,7 @@ export function readImageField(value: FormDataEntryValue | null): ImageValidatio
     return { ok: true, file: null };
   }
   if (value.size > MAX_IMAGE_BYTES) {
-    return { ok: false, error: "A imagem deve ter no máximo 2 MB" };
+    return { ok: false, error: "A imagem deve ter no máximo 4 MB" };
   }
   return { ok: true, file: value };
 }
