@@ -3,7 +3,7 @@
 // página HTML. Helvetica embutida: cobre acentos do português e é lida por ATS.
 import "server-only";
 
-import { Document, Font, Link, Page, renderToBuffer, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Document, Font, Image, Link, Page, renderToBuffer, StyleSheet, Text, View } from "@react-pdf/renderer";
 
 import type { ResumeView } from "@/lib/content/resume";
 import { HTML_LANG, type Locale } from "@/lib/i18n/config";
@@ -37,6 +37,8 @@ const styles = StyleSheet.create({
   },
   entry: { marginBottom: 6 },
   entryHead: { flexDirection: "row", justifyContent: "space-between" },
+  entryTitleRow: { flexDirection: "row", alignItems: "center" },
+  logo: { width: 10, height: 10, marginRight: 4, objectFit: "contain" },
   bold: { fontFamily: "Helvetica-Bold" },
   muted: { color: "#555" },
   italic: { fontFamily: "Helvetica-Oblique", color: "#555" },
@@ -64,13 +66,26 @@ function Bullets({ items }: { items: string[] }) {
   ));
 }
 
-function EntryHead({ title, subtitle, period }: { title: string; subtitle?: string; period?: string }) {
+function EntryHead({
+  title,
+  subtitle,
+  period,
+  logoUrl,
+}: {
+  title: string;
+  subtitle?: string;
+  period?: string;
+  logoUrl?: string | null;
+}) {
   return (
     <View style={styles.entryHead}>
-      <Text>
-        <Text style={styles.bold}>{title}</Text>
-        {subtitle ? <Text style={styles.muted}> · {subtitle}</Text> : null}
-      </Text>
+      <View style={styles.entryTitleRow}>
+        {logoUrl ? <Image src={logoUrl} style={styles.logo} /> : null}
+        <Text>
+          <Text style={styles.bold}>{title}</Text>
+          {subtitle ? <Text style={styles.muted}> · {subtitle}</Text> : null}
+        </Text>
+      </View>
       {period ? <Text style={styles.italic}>{period}</Text> : null}
     </View>
   );
@@ -125,7 +140,7 @@ function ResumePdf({ resume, t, locale }: { resume: ResumeView; t: ResumeMessage
           <Section title={t.sections.experience}>
             {resume.experience.map((item) => (
               <View key={`${item.role}-${item.period}`} style={styles.entry} wrap={false}>
-                <EntryHead title={item.role} subtitle={item.organization} period={item.period} />
+                <EntryHead title={item.role} subtitle={item.organization} period={item.period} logoUrl={item.logoUrl} />
                 <Bullets items={item.bullets} />
               </View>
             ))}
@@ -155,7 +170,7 @@ function ResumePdf({ resume, t, locale }: { resume: ResumeView; t: ResumeMessage
           <Section title={t.sections.education}>
             {resume.education.map((item) => (
               <View key={`${item.course}-${item.institution}`} style={styles.entry} wrap={false}>
-                <EntryHead title={item.course} period={item.period} />
+                <EntryHead title={item.course} period={item.period} logoUrl={item.logoUrl} />
                 <Text style={styles.italic}>
                   {item.institution}
                   {item.details ? ` — ${item.details}` : ""}
@@ -167,7 +182,13 @@ function ResumePdf({ resume, t, locale }: { resume: ResumeView; t: ResumeMessage
 
         {resume.courses.length > 0 && (
           <Section title={t.sections.courses}>
-            <Bullets items={resume.courses.map((course) => (course.details ? `${course.name} (${course.details})` : course.name))} />
+            {resume.courses.map((course) => (
+              <View key={course.name} style={styles.bullet}>
+                <Text style={styles.bulletMark}>•</Text>
+                {course.imageUrl ? <Image src={course.imageUrl} style={styles.logo} /> : null}
+                <Text style={styles.bulletText}>{course.details ? `${course.name} (${course.details})` : course.name}</Text>
+              </View>
+            ))}
           </Section>
         )}
 

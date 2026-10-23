@@ -24,7 +24,7 @@ import { HTML_LANG, type Locale } from "@/lib/i18n/config";
 import { resume as resumeMessages } from "@/lib/i18n/messages/resume";
 
 import { saveResumeAction } from "../actions";
-import { FormMessage, SubmitButton } from "../form-parts";
+import { FormMessage, ImageField, SubmitButton } from "../form-parts";
 
 // Estado controlado: o currículo inteiro vai num input escondido (JSON) e é
 // validado no servidor. Controlado também sobrevive ao reset do form após erro.
@@ -178,10 +178,10 @@ function ListEditor<T>({
 const EMPTY = {
   link: { label: "", url: "" } satisfies ResumeLink,
   skill: { label: "", items: "" } satisfies ResumeSkillGroup,
-  experience: { role: "", organization: "", period: "", bullets: [] } satisfies ResumeExperience,
+  experience: { role: "", organization: "", period: "", bullets: [], logoUrl: null, logoPath: null } satisfies ResumeExperience,
   project: { name: "", context: "", bullets: [], linkLabel: "", linkUrl: "" } satisfies ResumeProject,
-  education: { course: "", institution: "", period: "", details: "" } satisfies ResumeEducation,
-  course: { name: "", details: "", url: "" } satisfies ResumeCourse,
+  education: { course: "", institution: "", period: "", details: "", logoUrl: null, logoPath: null } satisfies ResumeEducation,
+  course: { name: "", details: "", url: "", imageUrl: null, imagePath: null } satisfies ResumeCourse,
 };
 
 export function ResumeForm({ resume: initial, contentLocale }: { resume: Resume; contentLocale: Locale }) {
@@ -283,6 +283,13 @@ export function ResumeForm({ resume: initial, contentLocale }: { resume: Resume;
                 <TextField id={`exp-${index}-period`} label={t.period} value={item.period} onChange={(period) => update({ period })} maxLength={60} placeholder="08/2026 – 12/2026" lang={lang} />
               </div>
               <BulletsField id={`exp-${index}-bullets`} value={item.bullets} onChange={(bullets) => update({ bullets })} max={8} t={t} lang={lang} />
+              <ImageField
+                state={state}
+                name={`exp-logo-${index}`}
+                label={t.companyLogo}
+                currentUrl={item.logoUrl}
+                removeName={`exp-logo-${index}-remove`}
+              />
             </>
           )}
         />
@@ -326,6 +333,13 @@ export function ResumeForm({ resume: initial, contentLocale }: { resume: Resume;
                 <TextField id={`edu-${index}-period`} label={t.period} value={item.period} onChange={(period) => update({ period })} maxLength={60} placeholder="07/2024 – 07/2025" lang={lang} />
               </div>
               <TextField id={`edu-${index}-details`} label={t.details} value={item.details} onChange={(details) => update({ details })} maxLength={200} lang={lang} />
+              <ImageField
+                state={state}
+                name={`edu-logo-${index}`}
+                label={t.institutionLogo}
+                currentUrl={item.logoUrl}
+                removeName={`edu-logo-${index}-remove`}
+              />
             </>
           )}
         />
@@ -339,11 +353,20 @@ export function ResumeForm({ resume: initial, contentLocale }: { resume: Resume;
           empty={EMPTY.course}
           onChange={set("courses")}
           renderItem={(item, update, index) => (
-            <div className="grid gap-4 sm:grid-cols-3">
-              <TextField id={`course-${index}-name`} label={t.projectName} value={item.name} onChange={(name) => update({ name })} maxLength={160} lang={lang} />
-              <TextField id={`course-${index}-details`} label={t.details} value={item.details} onChange={(details) => update({ details })} maxLength={100} placeholder="Udemy · 5 h · 2026" lang={lang} />
-              <TextField id={`course-${index}-url`} label={t.certificate} type="url" value={item.url} onChange={(url) => update({ url })} placeholder="https://" />
-            </div>
+            <>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <TextField id={`course-${index}-name`} label={t.projectName} value={item.name} onChange={(name) => update({ name })} maxLength={160} lang={lang} />
+                <TextField id={`course-${index}-details`} label={t.details} value={item.details} onChange={(details) => update({ details })} maxLength={100} placeholder="Udemy · 5 h · 2026" lang={lang} />
+                <TextField id={`course-${index}-url`} label={t.certificate} type="url" value={item.url} onChange={(url) => update({ url })} placeholder="https://" />
+              </div>
+              <ImageField
+                state={state}
+                name={`course-image-${index}`}
+                label={t.certificateImage}
+                currentUrl={item.imageUrl}
+                removeName={`course-image-${index}-remove`}
+              />
+            </>
           )}
         />
 

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import type { ResumeView } from "@/lib/content/resume";
 import { slugify } from "@/lib/content/schemas";
 import { HTML_LANG, type Locale } from "@/lib/i18n/config";
@@ -33,10 +35,30 @@ function Bullets({ items }: { items: string[] }) {
   );
 }
 
-function EntryHeader({ title, subtitle, period }: { title: string; subtitle?: string; period?: string }) {
+function EntryHeader({
+  title,
+  subtitle,
+  period,
+  logoUrl,
+}: {
+  title: string;
+  subtitle?: string;
+  period?: string;
+  /** Logo da empresa/instituição (opcional) — some na impressão, igual ao resto do tema claro/escuro */
+  logoUrl?: string | null;
+}) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-      <h3 className="font-medium">
+      <h3 className="flex items-center gap-2 font-medium">
+        {logoUrl && (
+          <Image
+            src={logoUrl}
+            alt=""
+            width={24}
+            height={24}
+            className="size-6 shrink-0 rounded object-contain print:hidden"
+          />
+        )}
         {title}
         {subtitle && <span className="font-normal text-muted-foreground print:text-black/75"> · {subtitle}</span>}
       </h3>
@@ -106,7 +128,7 @@ export function ResumeDocument({
           <ul className="flex flex-col gap-5">
             {resume.experience.map((item) => (
               <li key={`${item.role}-${item.period}`} className="break-inside-avoid">
-                <EntryHeader title={item.role} subtitle={item.organization} period={item.period} />
+                <EntryHeader title={item.role} subtitle={item.organization} period={item.period} logoUrl={item.logoUrl} />
                 <Bullets items={item.bullets} />
               </li>
             ))}
@@ -152,7 +174,7 @@ export function ResumeDocument({
           <ul className="flex flex-col gap-4">
             {resume.education.map((item) => (
               <li key={`${item.course}-${item.institution}`} className="break-inside-avoid">
-                <EntryHeader title={item.course} subtitle={item.institution} period={item.period} />
+                <EntryHeader title={item.course} subtitle={item.institution} period={item.period} logoUrl={item.logoUrl} />
                 {item.details && <p className="mt-1 text-sm text-muted-foreground print:text-black/75">{item.details}</p>}
               </li>
             ))}
@@ -165,13 +187,24 @@ export function ResumeDocument({
           <ul className="flex list-disc flex-col gap-1 pl-5 text-sm marker:text-muted-foreground">
             {resume.courses.map((course) => (
               <li key={course.name}>
-                {course.url ? (
-                  <ExternalLink href={course.url} newTab={newTab}>
-                    {course.name}
-                  </ExternalLink>
-                ) : (
-                  course.name
-                )}
+                <span className="inline-flex items-center gap-2 align-middle">
+                  {course.imageUrl && (
+                    <Image
+                      src={course.imageUrl}
+                      alt=""
+                      width={20}
+                      height={20}
+                      className="size-5 shrink-0 rounded object-contain print:hidden"
+                    />
+                  )}
+                  {course.url ? (
+                    <ExternalLink href={course.url} newTab={newTab}>
+                      {course.name}
+                    </ExternalLink>
+                  ) : (
+                    course.name
+                  )}
+                </span>
                 {course.details && <span className="text-muted-foreground print:text-black/75"> · {course.details}</span>}
               </li>
             ))}

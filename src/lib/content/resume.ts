@@ -62,6 +62,9 @@ export function createResumeSchema(locale: Locale = DEFAULT_LOCALE) {
           organization: optionalText(l.organization, 100),
           period: text(l.period, 2, 60),
           bullets: bullets(8),
+          // Logo da empresa: definido pelo servidor após upload, não é um campo digitado
+          logoUrl: z.string().nullable().optional(),
+          logoPath: z.string().nullable().optional(),
         }),
       )
       .max(10, v.maxItems(10, v.lists.experience)),
@@ -83,11 +86,23 @@ export function createResumeSchema(locale: Locale = DEFAULT_LOCALE) {
           institution: text(l.institution, 2, 120),
           period: text(l.period, 2, 60),
           details: optionalText(l.details, 200),
+          // Logo da instituição: definido pelo servidor após upload
+          logoUrl: z.string().nullable().optional(),
+          logoPath: z.string().nullable().optional(),
         }),
       )
       .max(6, v.maxItems(6, v.lists.education)),
     courses: z
-      .array(z.object({ name: text(l.courseName, 2, 160), details: optionalText(l.details, 100), url: optionalUrl }))
+      .array(
+        z.object({
+          name: text(l.courseName, 2, 160),
+          details: optionalText(l.details, 100),
+          url: optionalUrl,
+          // Imagem do certificado: definida pelo servidor após upload
+          imageUrl: z.string().nullable().optional(),
+          imagePath: z.string().nullable().optional(),
+        }),
+      )
       .max(12, v.maxItems(12, v.lists.courses)),
     availability: optionalText(l.availability, 200),
     published: z.boolean(),
