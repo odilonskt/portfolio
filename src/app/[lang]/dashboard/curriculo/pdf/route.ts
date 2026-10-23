@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteContext<"/[lang
   const requested = request.nextUrl.searchParams.get("idioma");
   const contentLocale = isLocale(requested) ? requested : DEFAULT_LOCALE;
   const { resume } = await getResumeDraft(contentLocale);
-  return resumePdfResponse(buildResumeView(resume, { withContact: true }), contentLocale, {
+  return resumePdfResponse(buildResumeView(resume, { withContact: true }), contentLocale, request.nextUrl.origin, {
     "Cache-Control": "private, no-store",
   });
 }

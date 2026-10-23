@@ -1,11 +1,9 @@
 // lib/content/images.ts
-// Upload de imagens para o Firebase Storage com validação por assinatura binária.
+// Upload de imagens para o Vercel Blob com validação por assinatura binária.
 import "server-only";
 
-import { getDownloadURL } from "firebase-admin/storage";
+import { del, put } from "@vercel/blob";
 import { randomUUID } from "node:crypto";
-
-import { adminBucket } from "@/lib/firebase/admin";
 
 // Mesmo teto do limite combinado por salvamento (MAX_UPLOAD_BYTES_PER_SAVE em
 // actions.ts): mais que isso não caberia de qualquer forma no limite de
@@ -60,21 +58,24 @@ export async function uploadImage(
   }
 
   const path = `uploads/${folder}/${randomUUID()}.${kind.ext}`;
-  const storageFile = adminBucket().file(path);
 
-  await storageFile.save(Buffer.from(bytes), {
-    resumable: false,
+  const blob = await put(path, Buffer.from(bytes), {
+    access: "private",
+    addRandomSuffix: false, // o path já é único (randomUUID acima)
     contentType: kind.mime, // tipo detectado, nunca o informado pelo navegador
-    metadata: { cacheControl: "public, max-age=31536000, immutable" },
+    cacheControlMaxAge: 31536000,
   });
 
-  return { url: await getDownloadURL(storageFile), path };
+  // O store é privado (sem URL pública direta); a leitura passa pela rota
+  // /api/blob/[...path], que busca o conteúdo com o token do servidor. URL
+  // relativa: funciona direto com <Image>/<img>, sem precisar saber o host.
+  return { url: `/api/blob/${blob.pathname}`, path: blob.pathname };
 }
 
 export async function deleteImage(path: string | undefined): Promise<void> {
   if (!path?.startsWith("uploads/")) return;
   try {
-    await adminBucket().file(path).delete({ ignoreNotFound: true });
+    await del(path);
   } catch (error) {
     console.error("Erro ao remover imagem:", error);
   }

@@ -1,11 +1,12 @@
 // lib/firebase/admin.ts
-// Firebase Admin SDK — uso EXCLUSIVO no servidor. Ignora as regras do Firestore/Storage,
+// Firebase Admin SDK — uso EXCLUSIVO no servidor. Ignora as regras do Firestore,
 // por isso nunca deve ser importado em componentes de cliente.
+// Upload de arquivo usa o Vercel Blob (src/lib/content/images.ts), não o Firebase
+// Storage — ver histórico do repo para o motivo (Storage exige plano pago).
 import "server-only";
 
 import { cert, getApp, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { getStorage } from "firebase-admin/storage";
 
 import { env } from "@/lib/env";
 
@@ -46,7 +47,6 @@ function getAdminApp(): App {
     {
       credential: cert(credentials),
       projectId: credentials.projectId,
-      storageBucket: env.FIREBASE_STORAGE_BUCKET,
     },
     ADMIN_APP_NAME
   );
@@ -62,4 +62,3 @@ export async function adminAuth() {
   return getAuth(getAdminApp());
 }
 export const adminDb = () => getFirestore(getAdminApp());
-export const adminBucket = () => getStorage(getAdminApp()).bucket();
