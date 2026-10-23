@@ -25,6 +25,12 @@
       "skillPath": "skills/next-dev-loop/SKILL.md",
       "computedHash": "c305c83b726212e0284930c65cded2c4a4ab85f9bfccfa83b62274247fe3580e"
     },
+    "nextjs-turbopack": {
+      "source": "affaan-m/ecc",
+      "sourceType": "github",
+      "skillPath": "skills/nextjs-turbopack/SKILL.md",
+      "computedHash": "7c0a0cc66806d6594c385f4e80419a305027065b852d48fe2cf91540ebea660c"
+    },
     "shadcn": {
       "source": "shadcn-ui/ui",
       "sourceType": "github",
