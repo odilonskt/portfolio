@@ -93,6 +93,22 @@ function EntryHead({
 
 const shortUrl = (url: string) => url.replace(/^https:\/\//, "").replace(/\/$/, "");
 
+// @react-pdf/renderer busca a imagem via HTTP a partir do servidor (sem contexto de
+// página), então uma URL relativa (ex.: /api/blob/...) não resolve — precisa do host.
+function absolutize<T extends string | null | undefined>(url: T, baseUrl: string): T {
+  if (!url || !url.startsWith("/")) return url;
+  return `${baseUrl}${url}` as T;
+}
+
+function resolveImageUrls(resume: ResumeView, baseUrl: string): ResumeView {
+  return {
+    ...resume,
+    experience: resume.experience.map((item) => ({ ...item, logoUrl: absolutize(item.logoUrl, baseUrl) })),
+    education: resume.education.map((item) => ({ ...item, logoUrl: absolutize(item.logoUrl, baseUrl) })),
+    courses: resume.courses.map((course) => ({ ...course, imageUrl: absolutize(course.imageUrl, baseUrl) })),
+  };
+}
+
 function ResumePdf({ resume, t, locale }: { resume: ResumeView; t: ResumeMessages; locale: Locale }) {
   return (
     <Document title={t.pdfTitle(resume.name)} author={resume.name} language={HTML_LANG[locale]}>
@@ -204,9 +220,15 @@ function ResumePdf({ resume, t, locale }: { resume: ResumeView; t: ResumeMessage
 }
 
 /** Resposta pronta para download. */
-export async function resumePdfResponse(resume: ResumeView, locale: Locale, headers: HeadersInit = {}): Promise<Response> {
+export async function resumePdfResponse(
+  resume: ResumeView,
+  locale: Locale,
+  baseUrl: string,
+  headers: HeadersInit = {}
+): Promise<Response> {
   const t = resumeMessages[locale];
-  const buffer = await renderToBuffer(<ResumePdf resume={resume} t={t} locale={locale} />);
+  const resolved = resolveImageUrls(resume, baseUrl);
+  const buffer = await renderToBuffer(<ResumePdf resume={resolved} t={t} locale={locale} />);
   const filename = `${t.fileName}-${resume.name.normalize("NFD").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase()}.pdf`;
   return new Response(new Uint8Array(buffer), {
     headers: {

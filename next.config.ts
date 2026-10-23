@@ -54,12 +54,8 @@ const nextConfig: NextConfig = {
         hostname: "i.pinimg.com",
         pathname: "/originals/**",
       },
-      {
-        // Imagens enviadas pelo painel (Firebase Storage)
-        protocol: "https",
-        hostname: "firebasestorage.googleapis.com",
-        pathname: `/v0/b/${process.env.FIREBASE_STORAGE_BUCKET ?? "*"}/**`,
-      },
+      // Imagens enviadas pelo painel (Vercel Blob) são servidas por /api/blob
+      // (mesma origem) — URL relativa, não precisa de remotePattern.
     ],
   },
 };

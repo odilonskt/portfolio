@@ -21,7 +21,10 @@ export async function GET(request: Request, { params }: RouteContext<"/[lang]/cu
   if (!published) return new Response(t.notFound, { status: 404 });
 
   // CDN guarda por 10 min: evita gerar o PDF a cada visita
-  return resumePdfResponse(buildResumeView(published.resume, { withContact: true }), published.locale, {
-    "Cache-Control": "public, s-maxage=600, stale-while-revalidate=3600",
-  });
+  return resumePdfResponse(
+    buildResumeView(published.resume, { withContact: true }),
+    published.locale,
+    new URL(request.url).origin,
+    { "Cache-Control": "public, s-maxage=600, stale-while-revalidate=3600" }
+  );
 }
