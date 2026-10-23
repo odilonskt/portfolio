@@ -381,7 +381,8 @@ const MAX_RESUME_JSON = 100_000; // ~10x um currículo completo
 export async function saveResumeAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const { uid, locale } = await start();
   const t = resumeMessages[locale].editor;
-  if (isRateLimited(uid, "save")) return errorState(formData, { message: dashboard[locale].common.rateLimited });
+  const common = dashboard[locale].common;
+  if (isRateLimited(uid, "save")) return errorState(formData, { message: common.rateLimited });
 
   // Idioma da versão do currículo que está sendo editada (independente do painel)
   const requested = formData.get("contentLocale");
@@ -405,13 +406,102 @@ export async function saveResumeAction(_prev: FormState, formData: FormData): Pr
     });
   }
 
+  // Logo da empresa/instituição e imagem do certificado: cada item já carrega seu
+  // logoUrl/logoPath (ou imageUrl/imagePath) vindo do JSON acima — preservado ao
+  // reordenar os itens. Aqui só resolvemos arquivo novo ou remoção, por índice;
+  // o upload em si só acontece depois, dentro do try, igual a saveProjectAction.
+  const experience = parsed.data.experience.map((item) => ({ ...item }));
+  const experienceFiles: { index: number; file: File }[] = [];
+  for (let index = 0; index < experience.length; index++) {
+    const fieldName = `exp-logo-${index}`;
+    const field = readImageField(formData.get(fieldName));
+    if (!field.ok) return errorState(formData, { fieldErrors: { [fieldName]: [common.imageTooLarge] } });
+    if (field.file) experienceFiles.push({ index, file: field.file });
+    else if (formData.get(`${fieldName}-remove`) === "on") {
+      experience[index].logoUrl = null;
+      experience[index].logoPath = null;
+    }
+  }
+
+  const education = parsed.data.education.map((item) => ({ ...item }));
+  const educationFiles: { index: number; file: File }[] = [];
+  for (let index = 0; index < education.length; index++) {
+    const fieldName = `edu-logo-${index}`;
+    const field = readImageField(formData.get(fieldName));
+    if (!field.ok) return errorState(formData, { fieldErrors: { [fieldName]: [common.imageTooLarge] } });
+    if (field.file) educationFiles.push({ index, file: field.file });
+    else if (formData.get(`${fieldName}-remove`) === "on") {
+      education[index].logoUrl = null;
+      education[index].logoPath = null;
+    }
+  }
+
+  const courses = parsed.data.courses.map((item) => ({ ...item }));
+  const courseFiles: { index: number; file: File }[] = [];
+  for (let index = 0; index < courses.length; index++) {
+    const fieldName = `course-image-${index}`;
+    const field = readImageField(formData.get(fieldName));
+    if (!field.ok) return errorState(formData, { fieldErrors: { [fieldName]: [common.imageTooLarge] } });
+    if (field.file) courseFiles.push({ index, file: field.file });
+    else if (formData.get(`${fieldName}-remove`) === "on") {
+      courses[index].imageUrl = null;
+      courses[index].imagePath = null;
+    }
+  }
+
+  // Limite da Vercel: 4,5 MB por requisição, somando todos os arquivos novos
+  const totalNewBytes = [...experienceFiles, ...educationFiles, ...courseFiles].reduce(
+    (total, { file }) => total + file.size,
+    0,
+  );
+  if (totalNewBytes > MAX_UPLOAD_BYTES_PER_SAVE) {
+    return errorState(formData, { message: common.imageTooLarge });
+  }
+
+  const uploaded: string[] = []; // paths novos: apagar se o salvamento falhar
+  const toDelete: string[] = []; // paths antigos: só apagar depois do Firestore confirmar
+
   try {
-    await saveResume({ ...parsed.data, updatedAt: new Date().toISOString() }, contentLocale);
+    for (const { index, file } of experienceFiles) {
+      const oldPath = experience[index].logoPath;
+      if (oldPath) toDelete.push(oldPath);
+      const result = await uploadImage(file, "resume");
+      uploaded.push(result.path);
+      experience[index].logoUrl = result.url;
+      experience[index].logoPath = result.path;
+    }
+    for (const { index, file } of educationFiles) {
+      const oldPath = education[index].logoPath;
+      if (oldPath) toDelete.push(oldPath);
+      const result = await uploadImage(file, "resume");
+      uploaded.push(result.path);
+      education[index].logoUrl = result.url;
+      education[index].logoPath = result.path;
+    }
+    for (const { index, file } of courseFiles) {
+      const oldPath = courses[index].imagePath;
+      if (oldPath) toDelete.push(oldPath);
+      const result = await uploadImage(file, "resume");
+      uploaded.push(result.path);
+      courses[index].imageUrl = result.url;
+      courses[index].imagePath = result.path;
+    }
+
+    await saveResume(
+      { ...parsed.data, experience, education, courses, updatedAt: new Date().toISOString() },
+      contentLocale,
+    );
   } catch (error) {
+    // Não deixa arquivos órfãos no Storage se o salvamento falhar
+    await Promise.all(uploaded.map((path) => deleteImage(path)));
+    if (error instanceof InvalidImageError) {
+      return errorState(formData, { message: common.imageFormat });
+    }
     console.error("Erro ao salvar currículo:", error);
     return errorState(formData, { message: t.saveError });
   }
 
+  await Promise.all(toDelete.map((path) => deleteImage(path)));
   updateTag(RESUME_TAG);
   redirect(localePath(locale, `/dashboard/curriculo?idioma=${contentLocale}&salvo=1`));
 }
