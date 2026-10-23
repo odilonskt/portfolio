@@ -1,3 +1,7 @@
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
+
 import { cn } from "@/lib/utils";
 
 /**
@@ -36,13 +40,22 @@ interface SectionProps {
 
 export function Section({ id, title, description, children, className, width = "default" }: SectionProps) {
   const headingId = `${id}-titulo`;
+  const prefersReducedMotion = useReducedMotion();
 
   return (
-    <section id={id} aria-labelledby={headingId} className={cn("scroll-mt-24 py-20 sm:py-24", className)}>
+    <motion.section
+      id={id}
+      aria-labelledby={headingId}
+      className={cn("scroll-mt-24 py-20 sm:py-24", className)}
+      initial={prefersReducedMotion ? undefined : { opacity: 0, y: 16 }}
+      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
       <div className={cn("mx-auto w-full px-4 sm:px-6", width === "narrow" ? "max-w-3xl" : "max-w-5xl")}>
         <SectionHeader id={headingId} title={title} description={description} />
         {children}
       </div>
-    </section>
+    </motion.section>
   );
 }

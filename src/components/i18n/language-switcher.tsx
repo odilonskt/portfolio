@@ -29,7 +29,7 @@ export function LanguageSwitcher({ className, showLabel = false }: { className?:
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          "inline-flex items-center justify-center gap-1.5 rounded-full text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+          "inline-flex items-center justify-center gap-1.5 rounded-full text-sm font-medium text-muted-foreground transition-[color,background-color,transform] hover:scale-105 hover:bg-muted hover:text-foreground active:scale-95",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
           className,
         )}

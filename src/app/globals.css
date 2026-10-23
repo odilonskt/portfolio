@@ -263,6 +263,68 @@
     mix-blend-mode: normal;
 }
 
+/* Crossfade entre páginas (src/app/[lang]/template.tsx); "page-content", nunca "root" */
+@keyframes page-content-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-content-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+::view-transition-old(page-content) {
+  animation: 150ms ease-out both page-content-fade-out;
+}
+
+::view-transition-new(page-content) {
+  animation: 200ms ease-in 100ms both page-content-fade-in;
+}
+
+/* Paleta de comandos (Ctrl+K): itens entram em sequência dentro de cada grupo */
+@keyframes command-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[cmdk-item] {
+  animation: command-item-in 200ms ease-out both;
+}
+
+[cmdk-item]:nth-child(1) {
+  animation-delay: 0ms;
+}
+[cmdk-item]:nth-child(2) {
+  animation-delay: 25ms;
+}
+[cmdk-item]:nth-child(3) {
+  animation-delay: 50ms;
+}
+[cmdk-item]:nth-child(4) {
+  animation-delay: 75ms;
+}
+[cmdk-item]:nth-child(5) {
+  animation-delay: 100ms;
+}
+[cmdk-item]:nth-child(6) {
+  animation-delay: 125ms;
+}
+[cmdk-item]:nth-child(7) {
+  animation-delay: 150ms;
+}
+[cmdk-item]:nth-child(n + 8) {
+  animation-delay: 175ms;
+}
+
 /* Loading: surge suavemente após um pequeno atraso para não piscar em navegações rápidas */
 @keyframes loading-fade-in {
   from {
@@ -346,5 +408,13 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* ::view-transition-* vive numa árvore à parte: o seletor "*" acima não a alcança */
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }

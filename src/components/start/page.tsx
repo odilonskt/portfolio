@@ -3,6 +3,7 @@ import { FileText, Send } from "lucide-react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
+import { GithubGlobe } from "@/components/start/github-globe";
 import { PROFILE, PROFILE_TEXT, SOCIAL_LINKS } from "@/lib/content/profile";
 import { localePath } from "@/lib/i18n/config";
 import { common } from "@/lib/i18n/messages/common";
@@ -76,7 +77,10 @@ export default async function Start({ id }: { id: string }) {
   return (
     <section id={id} aria-labelledby="hero-titulo" className="scroll-mt-24">
       <div className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-5xl flex-col items-center justify-center gap-10 px-4 pt-24 pb-16 sm:px-6 lg:flex-row lg:gap-16">
-        <Portrait alt={t.photoAlt(PROFILE.name)} />
+        <div className="relative shrink-0">
+          <GithubGlobe />
+          <Portrait alt={t.photoAlt(PROFILE.name)} />
+        </div>
 
         <div className="flex max-w-xl flex-col items-center gap-6 text-center lg:items-start lg:text-left">
           <div className="flex flex-col gap-3">

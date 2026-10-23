@@ -1,18 +1,21 @@
 "use client";
 
-import { Box, Code, Folder, Home, Info, Mail, Newspaper, Route } from "lucide-react";
+import { Box, Code, Folder, Home, Info, Mail, Newspaper, Route, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
+import CommandPalette, { useCommandPaletteShortcut } from "@/components/command-palette/page";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { useLocale, useMessages } from "@/lib/i18n/client";
 import { localePath, stripLocale } from "@/lib/i18n/config";
+import { commandPalette } from "@/lib/i18n/messages/command-palette";
 import { common } from "@/lib/i18n/messages/common";
 import { cn } from "@/lib/utils";
 
 // Âncoras com "/" na frente funcionam tanto na home quanto em /blog
-const MENU_ITEMS = [
+export const MENU_ITEMS = [
   { key: "home", href: "/#start", icon: Home, mobile: true },
   { key: "about", href: "/#meio", icon: Info, mobile: true },
   { key: "journey", href: "/#Trajetoria", icon: Route, mobile: true },
@@ -31,8 +34,11 @@ const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-
 export default function ResponsiveNav() {
   const locale = useLocale();
   const t = useMessages(common);
+  const tCommandPalette = useMessages(commandPalette);
   const route = stripLocale(usePathname());
   const isCurrent = (href: string) => href === "/blog" && route.startsWith("/blog");
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const shortcutLabel = useCommandPaletteShortcut(setPaletteOpen);
 
   return (
     <>
@@ -49,7 +55,7 @@ export default function ResponsiveNav() {
                   href={localePath(locale, item.href)}
                   aria-current={isCurrent(item.href) ? "page" : undefined}
                   className={cn(
-                    "block rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground lg:px-4",
+                    "block rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-[color,transform] hover:scale-105 hover:text-foreground active:scale-95 lg:px-4",
                     "aria-[current=page]:bg-foreground aria-[current=page]:text-background",
                     focusRing,
                   )}
@@ -60,10 +66,24 @@ export default function ResponsiveNav() {
             ))}
           </ul>
           <span aria-hidden="true" className="mx-1 h-5 w-px bg-border" />
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            aria-label={tCommandPalette.trigger.label(shortcutLabel)}
+            className={cn(
+              "flex h-9 items-center gap-1.5 rounded-full px-2.5 text-muted-foreground transition-[color,background-color,transform] hover:scale-105 hover:bg-muted hover:text-foreground active:scale-95",
+              focusRing,
+            )}
+          >
+            <Search className="size-4" aria-hidden="true" />
+            <kbd className="hidden rounded border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground lg:inline-block">
+              {shortcutLabel}
+            </kbd>
+          </button>
           <LanguageSwitcher className="h-9 px-2.5" />
           <AnimatedThemeToggler
             className={cn(
-              "flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground [&_svg]:size-4",
+              "flex size-9 items-center justify-center rounded-full text-muted-foreground transition-[color,background-color,transform] hover:scale-105 hover:bg-muted hover:text-foreground active:scale-95 [&_svg]:size-4",
               focusRing,
             )}
           />
@@ -72,17 +92,30 @@ export default function ResponsiveNav() {
 
       {/* ========== CELULAR ========== */}
       <div className="fixed top-3 right-3 z-50 flex items-center gap-2 md:hidden print:hidden">
+        <button
+          type="button"
+          onClick={() => setPaletteOpen(true)}
+          aria-label={tCommandPalette.trigger.label(shortcutLabel)}
+          className={cn(
+            "flex size-11 items-center justify-center rounded-full border border-border bg-background/80 text-foreground shadow-sm backdrop-blur-md transition-transform active:scale-90",
+            focusRing,
+          )}
+        >
+          <Search className="size-5" aria-hidden="true" />
+        </button>
         <LanguageSwitcher
           showLabel
           className="h-11 border border-border bg-background/80 px-3 text-foreground shadow-sm backdrop-blur-md"
         />
         <AnimatedThemeToggler
           className={cn(
-            "flex size-11 items-center justify-center rounded-full border border-border bg-background/80 text-foreground shadow-sm backdrop-blur-md [&_svg]:size-5",
+            "flex size-11 items-center justify-center rounded-full border border-border bg-background/80 text-foreground shadow-sm backdrop-blur-md transition-transform active:scale-90 [&_svg]:size-5",
             focusRing,
           )}
         />
       </div>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
 
       <nav
         aria-label={t.nav.label}
@@ -95,7 +128,7 @@ export default function ResponsiveNav() {
                 href={localePath(locale, href)}
                 aria-current={isCurrent(href) ? "page" : undefined}
                 className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-1 px-1 text-muted-foreground transition-colors hover:text-foreground",
+                  "flex min-h-14 flex-col items-center justify-center gap-1 px-1 text-muted-foreground transition-[color,transform] active:scale-90 hover:text-foreground",
                   "aria-[current=page]:text-foreground",
                   focusRing,
                 )}

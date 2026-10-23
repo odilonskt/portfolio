@@ -1,3 +1,4 @@
+import EasterEgg from "@/components/easter-egg/page";
 import Footer from "@/components/footer/page";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { GitHubUserProvider } from "@/context/github-user-context";
@@ -71,6 +72,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
           <GitHubUserProvider initialData={githubUser}>
             <div className="flex-1">{children}</div>
             <Footer />
+            <EasterEgg />
           </GitHubUserProvider>
         </ThemeProvider>
         </LocaleProvider>
