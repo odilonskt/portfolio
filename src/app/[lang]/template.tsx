@@ -1,16 +1,26 @@
-import { ViewTransition } from "react";
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
 
 /**
  * Ao contrário do layout (que persiste), o template remonta a cada navegação entre
- * rotas — é o lugar certo para o crossfade de página. Nome próprio ("page-content",
- * nunca o implícito "root") para não colidir com a animação de troca de tema do
- * AnimatedThemeToggler, que já reserva `::view-transition-*(root)` em globals.css.
- * Âncoras (`/#secao`) não remontam o template: não há transição nessa navegação.
+ * rotas — só um fade de entrada na página nova (sem exit da antiga: tentar animar os
+ * dois lados exigiria manter a página antiga montada durante a troca de rota, o que
+ * complica a suspensão/streaming do App Router). CSS puro (Framer Motion), sem a
+ * View Transition API nativa do navegador: ela rejeita a transição quando a aba está
+ * oculta durante a navegação, o que o React expunha como erro "recuperável" no dev.
+ * Âncoras (`/#secao`) não remontam o template: não há fade nessa navegação.
  */
 export default function Template({ children }: { children: React.ReactNode }) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
-    <ViewTransition name="page-content" default="auto">
+    <motion.div
+      initial={prefersReducedMotion ? undefined : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
       {children}
-    </ViewTransition>
+    </motion.div>
   );
 }

@@ -263,27 +263,6 @@
     mix-blend-mode: normal;
 }
 
-/* Crossfade entre páginas (src/app/[lang]/template.tsx); "page-content", nunca "root" */
-@keyframes page-content-fade-out {
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes page-content-fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-::view-transition-old(page-content) {
-  animation: 150ms ease-out both page-content-fade-out;
-}
-
-::view-transition-new(page-content) {
-  animation: 200ms ease-in 100ms both page-content-fade-in;
-}
-
 /* Paleta de comandos (Ctrl+K): itens entram em sequência dentro de cada grupo */
 @keyframes command-item-in {
   from {
@@ -408,13 +387,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-
-  /* ::view-transition-* vive numa árvore à parte: o seletor "*" acima não a alcança */
-  ::view-transition-old(*),
-  ::view-transition-new(*),
-  ::view-transition-group(*) {
-    animation-duration: 0s !important;
-    animation-delay: 0s !important;
   }
 }

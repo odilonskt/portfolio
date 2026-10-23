@@ -1,7 +1,7 @@
 "use client"
 
 import React, { HTMLAttributes, useCallback, useMemo, useState } from "react"
-import { motion } from "motion/react"
+import { motion, useReducedMotion } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
@@ -31,6 +31,10 @@ const Beam = ({
     hue: Math.floor(Math.random() * 360),
     ar: Math.floor(Math.random() * 10) + 1,
   }))
+  const prefersReducedMotion = useReducedMotion()
+
+  // Com movimento reduzido, só a grade estática (fora deste componente) fica visível
+  if (prefersReducedMotion) return null
 
   return (
     <motion.div

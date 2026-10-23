@@ -146,7 +146,7 @@ function suspendTransitions(): () => void {
 
 export const AnimatedThemeToggler = ({
   className,
-  duration = 400,
+  duration = 650,
   variant,
   fromCenter = false,
   ...props
