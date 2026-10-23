@@ -1,0 +1,79 @@
+name: Security
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dependencies:
+    name: Auditoria de dependências (pnpm audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      # Falha só em vulnerabilidades altas/críticas: baixas/moderadas de transitivas
+      # são comuns e não devem travar todo PR.
+      - name: pnpm audit
+        run: pnpm audit --audit-level=high
+
+  sast:
+    name: Análise estática (Semgrep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Imagem oficial do Semgrep, fixada por digest (não "latest") — revisite de vez
+    # em quando em https://hub.docker.com/r/semgrep/semgrep/tags
+    container:
+      image: semgrep/semgrep@sha256:12d30d0e885ad134d0671b416b1de5e558b69729f0e7a60fd6cc8132b98811da
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      # CLI 100% gratuito e open source, sem precisar de conta/token da Semgrep.
+      - name: Semgrep scan
+        run: semgrep scan --config auto --error
+
+  secrets:
+    name: Segredo vazado (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # gitleaks também varre o histórico, não só o HEAD
+
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Comentário em PR exigiria permissão de escrita (pull-requests: write) pro
+          # token; preferimos manter o job só com "contents: read" e usar o próprio
+          # status do check (verde/vermelho) como sinal.
+          GITLEAKS_ENABLE_COMMENTS: "false"
+          # GITLEAKS_LICENSE só é exigido para contas de Organization; não se aplica
+          # aqui (conta pessoal) — a gitleaks-action não é MIT desde a v2 (ficou
+          # "grátis para conta pessoal", não open source puro), diferente do CLI
+          # gitleaks em si, que continua MIT.

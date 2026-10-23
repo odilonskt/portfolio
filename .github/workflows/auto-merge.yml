@@ -1,7 +1,9 @@
 name: Auto-merge
 
 # Ativa o auto-merge do GitHub nos PRs para a main. O merge (squash) só acontece
-# depois que todos os checks obrigatórios da branch protection passarem (CI e Vercel).
+# depois que todos os checks obrigatórios da branch protection passarem (CI, Security
+# e o deploy de preview em deploy.yml — ver esse arquivo para o fim da integração
+# nativa da Vercel).
 # Para não mesclar um PR específico, adicione a label "no-auto-merge".
 
 on:

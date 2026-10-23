@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Dependências do projeto (pnpm-lock.yaml) — grátis em qualquer plano, inclusive privado
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      # Menos ruído: patch/minor de tudo numa PR só; major continua separado para revisar com calma
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # Mantém os SHAs fixados nos workflows em dia (abre PR quando a tag avança)
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
