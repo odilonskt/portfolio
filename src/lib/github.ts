@@ -44,7 +44,7 @@ function assertOk(response: Response, path: string) {
 /** Limite atingido é esperado (a página mostra o aviso): só um alerta curto no log. */
 export function logGitHubFailure(context: string, error: unknown) {
   if (error instanceof GitHubRateLimitError) console.warn(`${context}: ${error.message}`);
-  else console.error(`${context}:`, error);
+  else console.error("%s:", context, error);
 }
 
 export async function getGitHubUser(username: string): Promise<GitHubUser> {

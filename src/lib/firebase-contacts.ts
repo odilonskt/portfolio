@@ -55,7 +55,7 @@ async function run<T>(label: string, task: () => Promise<T>): Promise<ApiRespons
     return { success: true, data: await task() };
   } catch (error) {
     // Detalhes só no log do servidor
-    console.error(`${label}:`, error);
+    console.error("%s:", label, error);
     return { success: false, error: label };
   }
 }

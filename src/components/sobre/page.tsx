@@ -12,6 +12,8 @@ function renderWithHighlights(text: string, highlights: Highlight[], newTab: str
 
   // Trechos mais longos primeiro, para "Node.js" não quebrar "Express/Nest.js"
   const sorted = [...highlights].sort((a, b) => b.text.length - a.text.length);
+  // Termos vêm de ABOUT (conteúdo fixo do código, não do usuário) e são escapados acima
+  // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
   const pattern = new RegExp(`(${sorted.map((h) => escapeRegExp(h.text)).join("|")})`, "gi");
 
   return text.split(pattern).map((part, index) => {
