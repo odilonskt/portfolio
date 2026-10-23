@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { isLocale, LOCALE_COOKIE, localePath, negotiateLocale } from "@/lib/i18n/config";
+import { isSameOrigin } from "@/lib/security/request-guard";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -62,8 +63,17 @@ function preferredLocale(request: NextRequest) {
   return isLocale(saved) ? saved : negotiateLocale(request.headers.get("accept-language"));
 }
 
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
 // Next 16.3+: "proxy" substitui a convenção "middleware"
 export function proxy(request: NextRequest) {
+  // Barreira CSRF para o site inteiro: nenhuma rota que muda dado precisa lembrar
+  // de chamar isSameOrigin() sozinha (ver src/app/api/contact/route.ts, que já fazia
+  // isso por conta própria — continua funcionando, essa checagem é redundante ali).
+  if (MUTATING_METHODS.has(request.method) && !isSameOrigin(request)) {
+    return withSecurityHeaders(new NextResponse("Forbidden", { status: 403 }));
+  }
+
   const { pathname, search } = request.nextUrl;
 
   // API e arquivos (icon.svg, imagens) não têm idioma

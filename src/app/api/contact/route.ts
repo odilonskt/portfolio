@@ -28,7 +28,7 @@ type ServerMessages = (typeof home)["pt"]["contact"]["server"];
 
 async function messages() {
   const locale = await getRequestLocale();
-  return { locale, t: home[locale].contact.server, admin: dashboard[locale].api };
+  return { locale, t: home[locale].contact.server, admin: dashboard[locale].api, common: dashboard[locale].common };
 }
 
 /** Barreiras comuns a toda requisição que altera dados. */
@@ -40,9 +40,23 @@ function guard(request: NextRequest, t: ServerMessages): NextResponse | null {
 }
 
 type AdminMessages = (typeof dashboard)["pt"]["api"];
+type CommonMessages = (typeof dashboard)["pt"]["common"];
 
-async function handleReadStatus(request: NextRequest, body: unknown, read: boolean, admin: AdminMessages) {
+// Mesmo padrão de dashboard/actions.ts (20-30/min): aqui por IP, pois isAdminRequest()
+// não expõe o uid (aceita cookie de sessão OU Bearer token).
+function isAdminRateLimited(request: NextRequest): boolean {
+  return !rateLimit(`contact:admin:${clientIp(request.headers)}`, 30, 60 * 1000).allowed;
+}
+
+async function handleReadStatus(
+  request: NextRequest,
+  body: unknown,
+  read: boolean,
+  admin: AdminMessages,
+  common: CommonMessages,
+) {
   if (!(await isAdminRequest(request))) return json({ success: false, error: admin.unauthorized }, 401);
+  if (isAdminRateLimited(request)) return json({ success: false, error: common.rateLimited }, 429);
 
   const id = idSchema.safeParse((body as { id?: unknown } | null)?.id);
   if (!id.success) return json({ success: false, error: admin.idRequired }, 400);
@@ -93,7 +107,7 @@ async function handleSubmission(request: NextRequest, body: unknown, locale: Awa
 }
 
 export async function POST(request: NextRequest) {
-  const { locale, t, admin } = await messages();
+  const { locale, t, admin, common } = await messages();
   const blocked = guard(request, t);
   if (blocked) return blocked;
 
@@ -106,8 +120,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const action = request.nextUrl.searchParams.get("action");
-    if (action === "mark-read") return await handleReadStatus(request, body, true, admin);
-    if (action === "mark-unread") return await handleReadStatus(request, body, false, admin);
+    if (action === "mark-read") return await handleReadStatus(request, body, true, admin, common);
+    if (action === "mark-unread") return await handleReadStatus(request, body, false, admin, common);
     if (action) return json({ success: false, error: admin.unknownAction }, 400);
     return await handleSubmission(request, body, locale);
   } catch (error) {
@@ -118,11 +132,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const { t, admin } = await messages();
+  const { t, admin, common } = await messages();
   const blocked = guard(request, t);
   if (blocked) return blocked;
 
   if (!(await isAdminRequest(request))) return json({ success: false, error: admin.unauthorized }, 401);
+  if (isAdminRateLimited(request)) return json({ success: false, error: common.rateLimited }, 429);
 
   const id = idSchema.safeParse(request.nextUrl.searchParams.get("id"));
   if (!id.success) return json({ success: false, error: admin.idRequired }, 400);
