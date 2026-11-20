@@ -18,6 +18,8 @@ export const home = defineMessages(
       description: "Ferramentas e linguagens que uso no dia a dia.",
       pause: "Pausar animação",
       resume: "Retomar animação",
+      cubeLabel: "Cubo 3D de tecnologias",
+      cubeHint: "Arraste o cubo ou use as setas do teclado para girar.",
     },
     highlight: { title: "Destaque visual", description: "Passe o mouse sobre as imagens para ver o efeito 3D." },
     journey: {
@@ -135,6 +137,8 @@ export const home = defineMessages(
         description: "Tools and languages I use every day.",
         pause: "Pause animation",
         resume: "Resume animation",
+        cubeLabel: "3D technology cube",
+        cubeHint: "Drag the cube or use the arrow keys to rotate it.",
       },
       highlight: { title: "Visual highlight", description: "Hover over the images to see the 3D effect." },
       journey: {
@@ -251,6 +255,8 @@ export const home = defineMessages(
         description: "Herramientas y lenguajes que uso a diario.",
         pause: "Pausar animación",
         resume: "Reanudar animación",
+        cubeLabel: "Cubo 3D de tecnologías",
+        cubeHint: "Arrastra el cubo o usa las flechas del teclado para girarlo.",
       },
       highlight: { title: "Destacado visual", description: "Pasa el mouse sobre las imágenes para ver el efecto 3D." },
       journey: {

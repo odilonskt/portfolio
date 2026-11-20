@@ -2,48 +2,15 @@
 
 import { Pause, Play } from "lucide-react";
 import { useState } from "react";
-import type { IconType } from "react-icons";
-import { IoLogoFirebase } from "react-icons/io5";
-import {
-  SiCss3,
-  SiDocker,
-  SiExpress,
-  SiGit,
-  SiJavascript,
-  SiNestjs,
-  SiNextdotjs,
-  SiNodedotjs,
-  SiPostgresql,
-  SiReact,
-  SiTailwindcss,
-  SiTypescript,
-} from "react-icons/si";
-import { TbApi } from "react-icons/tb";
-
+import { TECH_ICONS } from "@/components/tecnologia/icons";
+import { TechCube } from "@/components/tecnologia/tech-cube";
 import { Button } from "@/components/ui/button";
-import { TECHNOLOGIES, type Technology } from "@/lib/content/profile";
+import { TECHNOLOGIES } from "@/lib/content/profile";
 import { useMessages } from "@/lib/i18n/client";
 import { home } from "@/lib/i18n/messages/home";
 import { cn } from "@/lib/utils";
 
 import styles from "./InfinityScroll.module.css";
-
-const ICONS: Record<Technology, IconType> = {
-  "Next.js": SiNextdotjs,
-  React: SiReact,
-  TypeScript: SiTypescript,
-  JavaScript: SiJavascript,
-  "Node.js": SiNodedotjs,
-  NestJS: SiNestjs,
-  Express: SiExpress,
-  PostgreSQL: SiPostgresql,
-  Docker: SiDocker,
-  Tailwind: SiTailwindcss,
-  Git: SiGit,
-  Firebase: IoLogoFirebase,
-  CSS3: SiCss3,
-  RESTful: TbApi,
-};
 
 function TechList({ hidden = false }: { hidden?: boolean }) {
   return (
@@ -54,7 +21,7 @@ function TechList({ hidden = false }: { hidden?: boolean }) {
       aria-label={hidden ? undefined : "Tecnologias"}
     >
       {TECHNOLOGIES.map((name) => {
-        const Icon = ICONS[name];
+        const Icon = TECH_ICONS[name];
         return (
           <li key={name} className={styles.item}>
             <Icon className="size-8 sm:size-10" aria-hidden="true" />
@@ -93,6 +60,8 @@ export default function TechMarquee() {
         {paused ? <Play data-icon="inline-start" aria-hidden="true" /> : <Pause data-icon="inline-start" aria-hidden="true" />}
         {paused ? t.resume : t.pause}
       </Button>
+
+      <TechCube />
     </div>
   );
 }
