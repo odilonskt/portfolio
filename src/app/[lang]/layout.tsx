@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { GitHubUserProvider } from "@/context/github-user-context";
 import { env } from "@/lib/env";
 import { getGitHubUser, logGitHubFailure } from "@/lib/github";
+import { siteUrl } from "@/lib/seo";
 import { LocaleProvider } from "@/lib/i18n/client";
 import { HTML_LANG, languageAlternates, LOCALES, OG_LOCALE } from "@/lib/i18n/config";
 import { common } from "@/lib/i18n/messages/common";
@@ -33,11 +34,15 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   const t = common[locale];
   return {
+    metadataBase: siteUrl(),
     title: t.meta.title,
     description: t.meta.description,
     generator: "Next.js",
     alternates: languageAlternates(locale),
+    twitter: { card: "summary_large_image", title: t.meta.title, description: t.meta.description },
     openGraph: {
+      type: "website",
+      siteName: t.siteName,
       title: t.meta.title,
       description: t.meta.description,
       locale: OG_LOCALE[locale],

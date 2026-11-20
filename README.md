@@ -29,7 +29,15 @@ pnpm build && pnpm start
 pnpm lint
 ```
 
-Variáveis de ambiente (todas só no servidor, validadas em `src/lib/env.ts`): `FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `ADMIN_EMAILS`, `BLOB_READ_WRITE_TOKEN`, `GITHUB_USERNAME`, `GITHUB_TOKEN` (opcional).
+Variáveis de ambiente (todas só no servidor, validadas em `src/lib/env.ts`): `FIREBASE_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `ADMIN_EMAILS`, `BLOB_READ_WRITE_TOKEN`, `GITHUB_USERNAME`, `GITHUB_TOKEN` (opcional), `SITE_URL` (URL pública, usada no SEO; na Vercel cai em `VERCEL_PROJECT_PRODUCTION_URL`).
+
+## SEO (Google e buscadores de IA)
+
+- Metadados por página: título, descrição, canonical, `hreflang` (pt-BR, en, es), Open Graph e Twitter Card; imagem OG gerada em `/[lang]/opengraph-image`.
+- `/robots.txt` libera as páginas públicas, inclusive para robôs de IA (GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot, Google-Extended etc.), e bloqueia `/api`, painel e login.
+- `/sitemap.xml` com as 3 versões de cada página e os posts publicados.
+- `/llms.txt`: resumo do site em texto simples para IAs.
+- JSON-LD (schema.org): `Person` e `WebSite` na home, `BlogPosting` em cada post.
 
 ## Teste de escalabilidade
 

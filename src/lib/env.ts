@@ -20,6 +20,9 @@ const envSchema = z.object({
   GITHUB_API_URL: z.string().url().default("https://api.github.com"),
   GITHUB_USERNAME: z.string().min(1),
   GITHUB_TOKEN: z.string().min(1).optional(),
+
+  // URL pública do site (SEO: canonical, sitemap, Open Graph). Na Vercel cai em VERCEL_PROJECT_PRODUCTION_URL.
+  SITE_URL: z.string().url().optional(),
 });
 
 // Strings vazias ("VAR=") contam como ausentes
@@ -35,6 +38,7 @@ export const env = envSchema.parse({
   GITHUB_API_URL: clean(process.env.GITHUB_API_URL),
   GITHUB_USERNAME: clean(process.env.GITHUB_USERNAME),
   GITHUB_TOKEN: clean(process.env.GITHUB_TOKEN),
+  SITE_URL: clean(process.env.SITE_URL),
 });
 
 export type Env = z.infer<typeof envSchema>;
