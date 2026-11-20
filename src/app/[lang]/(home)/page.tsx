@@ -9,6 +9,7 @@ import Start from "@/components/start/page";
 import TechMarquee from "@/components/tecnologia/page";
 import { home } from "@/lib/i18n/messages/home";
 import { getLocale } from "@/lib/i18n/server";
+import { homeJsonLd } from "@/lib/seo";
 
 // Conteúdo do painel é cacheado e invalidado pelas server actions (updateTag)
 export const revalidate = 3600;
@@ -19,9 +20,11 @@ const HIGHLIGHT_GIFS = [
 ];
 
 export default async function Home() {
-  const t = home[await getLocale()];
+  const locale = await getLocale();
+  const t = home[locale];
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd(locale)).replace(/</g, "\\u003c") }} />
       <Header />
       <main id="conteudo">
         <Start id="start" />

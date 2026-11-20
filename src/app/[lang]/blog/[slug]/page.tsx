@@ -17,6 +17,8 @@ import { HTML_LANG, languageAlternates, localePath, OG_LOCALE } from "@/lib/i18n
 import { blog } from "@/lib/i18n/messages/blog";
 import { common } from "@/lib/i18n/messages/common";
 import { getLocale } from "@/lib/i18n/server";
+import { absoluteUrl } from "@/lib/seo";
+import { PROFILE } from "@/lib/content/profile";
 
 export const revalidate = 3600;
 
@@ -71,8 +73,23 @@ export default async function PostPage({ params }: Props) {
     [`${post.title}.`, post.excerpt, markdownToSpeech(post.content, blog[contentLocale].readAloud.codeBlock)].join("\n"),
   );
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    inLanguage: HTML_LANG[contentLocale],
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt,
+    keywords: post.tags,
+    mainEntityOfPage: absoluteUrl(localePath(locale, `/blog/${post.slug}`)),
+    author: { "@type": "Person", name: PROFILE.name },
+    ...(post.coverUrl ? { image: absoluteUrl(post.coverUrl) } : {}),
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <Header />
       <main id="conteudo" className="mx-auto w-full max-w-3xl px-4 pt-16 pb-28 sm:pt-32">
         <Link
